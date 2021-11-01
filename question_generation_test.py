@@ -23,6 +23,10 @@ def binary_question(sentence, w):
                 aux = "would"
             elif word.text == "'ve":
                 aux = "have"
+            elif word.text == "'m":
+                aux = "am"
+            elif word.text == "'re":
+                aux = "are"
             else:
                 aux = word.text
             res = aux.capitalize() + " " + res
