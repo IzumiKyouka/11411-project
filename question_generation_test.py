@@ -44,7 +44,6 @@ def binary_question(sentence, w):
     res += "?"
     return res
             
-
 def generate():
     for sentence in doc.sentences:
         tree = sentence.constituency.children[0].children
