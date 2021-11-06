@@ -4,43 +4,13 @@ f = open("11X11-Course-Project-Data/set1/a8.txt", "r", encoding="UTF-8")
 article = f.read()
 f.close()
 
-article = article[:5000]
+article = article[:10000]
 
-nlp = stanza.Pipeline(lang='en', processors='tokenize,mwt,pos,lemma,depparse,constituency')
+nlp = stanza.Pipeline(lang='en', processors='tokenize,mwt,pos,lemma,depparse,constituency,ner')
 
 doc = nlp(article)
 
-def run():
-    for sentence in doc.sentences:
-        for word in sentence.words:
-            if word.deprel == 'root':
-                # print("the root word %s has POS tag upos:%s, xpos:%s" % (word.text, word.upos, word.xpos))
-                root_word = word
-                root_postag = word.upos
-        if root_postag == 'VERB':
-            for word in sentence.words:
-                if word.head == root_word.id and word.deprel == 'nsubj':
-                    subj_word = word
-                if word.upos == 'NUM' and len(word.text) == 4 and word.head == root_word.id:
-                    year = int(word.text)
-        try:
-            if root_word.xpos == 'VBD':
-                try:
-                    verb = root_word.lemma
-                    something = ["%s" % verb]
-                    for word in sentence.words[root_word.id:]:
-                        if word.xpos not in ['PRP$', 'JJ', 'NN', 'IN', 'CC', 'DT', 'NNP']: break
-                        something.append(word.text)
-                    mid = ' '.join(something)
-                    question = ("When did %s " % subj_word.text) + mid + "?"
-                    answer = "In %d" % year
-                    print()
-                    print(question)
-                    print(answer)
-                except:
-                    pass
-        except:
-            pass
+
 
 
 # this function assumes the given sentence contains a time phrase
@@ -74,6 +44,51 @@ def ask_when(sentence):
 
     return temp + '?' + answer
 
+def ask_who(sentence):
+    word_list = ['Who']
+
+    tokens = get_main_info(sentence)
+    if 'main_verb' not in tokens.keys(): return None
+    if 'main_obj' not in tokens.keys(): return None
+    if 'main_subj' not in tokens.keys(): return None
+
+    answer = None
+    subject = tokens['main_subj']
+    for ent in sentence.ents:
+        if ent.type == 'PERSON':
+            name = ent.text
+            if subject in name:
+                answer = name
+                break
+    if answer is None: return None
+
+    word_list.append(tokens['main_verb'])
+    try:
+        word_list.append(tokens['main_obj'])
+    except:
+        pass
+
+    try:
+        month = tokens['month'] + ' '
+    except:
+        month = ''
+    try:
+        year = tokens['year']
+    except:
+        year = None
+    if year is not None:
+        happened_time = "in %s%d" % (month, year)
+    else:
+        happened_time = ''
+    
+    word_list.append(happened_time)
+
+    temp = ' '.join(word_list)
+    if temp[-1] == ' ': temp = temp[:-1]
+
+    return temp + '?' + ' ' + answer
+
+
 def find_head(word):
     return word.head
 
@@ -105,17 +120,10 @@ def get_main_info(sentence):
     return_tokens = dict()
 
     for word in sentence.words:
-        # # identify action
+        # identify action
         if is_main_verb(word):
+            return_tokens['main_verb'] = word.text
             return_tokens['main_verb_lemma'] = word.lemma
-        # if word.deprel == 'aux' and is_main_verb(sentence.words[word.head - 1]):
-        #     return_tokens['aux_verb'] = word
-        # if word.lemma == 'not':
-        #     return_tokens['negation'] = True
-        
-        # # identify agent
-        # if word.deprel == 'nsubj' and is_main_verb(sentence.words[word.head - 1]):
-        #     subject_word = word.text
 
         # identify time
         if word.upos == 'NUM' and word.text.isdigit() and len(word.text) == 4:
@@ -123,6 +131,7 @@ def get_main_info(sentence):
             check_month = sentence.words[word.head - 1]
             if is_month(check_month) and is_main_verb(sentence.words[check_month.head - 1]):
                 return_tokens['month'] = check_month.text
+
     
     for child in sentence.constituency.children[0].children:
         if child.label == 'NP':
@@ -131,11 +140,9 @@ def get_main_info(sentence):
             subject = ' '.join(subj_list)
             return_tokens['main_subj'] = subject
         if child.label == 'VP':
-            # verb_list = []
             obj_list = []
             for g_child in child.children:
                 if g_child.label == 'VBD':
-                    # add_to_list(verb_list, g_child)
                     verb = g_child.children[0].label
                     return_tokens['main_verb'] = verb
                 elif g_child.label == 'NP':
@@ -147,10 +154,10 @@ def get_main_info(sentence):
 
 
 for sentence in doc.sentences:
-    temp = ask_when(sentence)
+    temp = ask_who(sentence)
     if temp is not None:
         print()
-        print(ask_when(sentence))
+        print(temp)
 
     
     
