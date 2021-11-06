@@ -18,7 +18,7 @@ def ask_when(sentence):
     word_list = ['When', 'did']
 
     tokens = get_main_info(sentence)
-    if 'year' not in tokens.keys(): return None
+    if 'time' not in tokens.keys(): return None
     if 'main_verb_lemma' not in tokens.keys(): return None
     if 'main_obj' not in tokens.keys(): return None
 
@@ -30,17 +30,8 @@ def ask_when(sentence):
         pass
 
     temp = ' '.join(word_list)
-    if temp[-1] == ' ': temp = temp[:-1]
 
-    try:
-        month = tokens['month'] + ' '
-    except:
-        month = ''
-    try:
-        year = tokens['year']
-    except:
-        year = ''
-    answer = " In %s%d." % (month, year)
+    answer = " In %s." % tokens['time']
 
     return temp + '?' + answer
 
@@ -119,19 +110,15 @@ def add_to_list(lst, child):
 def get_main_info(sentence):
     return_tokens = dict()
 
+    for ent in sentence.ents:
+        if ent.type == 'DATE':
+            return_tokens['time'] = ent.text
+
     for word in sentence.words:
         # identify action
         if is_main_verb(word):
             return_tokens['main_verb'] = word.text
             return_tokens['main_verb_lemma'] = word.lemma
-
-        # identify time
-        if word.upos == 'NUM' and word.text.isdigit() and len(word.text) == 4:
-            return_tokens['year'] = int(word.text)
-            check_month = sentence.words[word.head - 1]
-            if is_month(check_month) and is_main_verb(sentence.words[check_month.head - 1]):
-                return_tokens['month'] = check_month.text
-
     
     for child in sentence.constituency.children[0].children:
         if child.label == 'NP':
@@ -154,10 +141,14 @@ def get_main_info(sentence):
 
 
 for sentence in doc.sentences:
-    temp = ask_who(sentence)
-    if temp is not None:
+    temp_who = ask_who(sentence)
+    temp_when = ask_when(sentence)
+    if temp_who is not None:
         print()
-        print(temp)
+        print(temp_who)
+    if temp_when is not None:
+        print()
+        print(temp_when)
 
     
     
