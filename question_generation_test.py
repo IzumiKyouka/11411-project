@@ -3,9 +3,7 @@ import stanza
 f = open("11X11-Course-Project-Data/set1/a8.txt", "r", encoding="UTF-8")
 article = f.read()
 f.close()
-
-
-nlp = stanza.Pipeline(lang='en', processors='tokenize,mwt,pos,ner,constituency')
+nlp = stanza.Pipeline(lang='en', processors='tokenize,mwt,pos,ner,constituency,lemma')
 
 doc = nlp(article)
 
@@ -15,7 +13,8 @@ def uncap(s):
     return s[0].lower() + s[1:]
 
 neg_words = ["not", "never", "n't"]
-def binary_question(sentence, w):
+
+def binary_question_aux(sentence, w):
     res = ""
     for i, word in enumerate(sentence.words):
         if word.text == w:
@@ -42,15 +41,55 @@ def binary_question(sentence, w):
     
     res = res[:-3]
     res += "?"
+    print(res)
+    return
+
+def dealFeats(features):
+    for i in features:
+        if "Tense" in i:
+            if i == "Tense=Past":
+                return 0
+            elif i == "Tense=Pres":
+                res = 1
+        if "Person" in i:
+            if i == "Person=3":
+                return 2
     return res
-            
+
+def binary_question_compound(sentence, w):
+    res = ""
+    for i, word in enumerate(sentence.words):
+        if word.text == w:
+            res += word.lemma + " "
+            features = word.feats.split("|")
+            deal = dealFeats(features)
+            if deal == 0:
+                res = "Did " + res
+            elif deal == 1:
+                res = "Do " + res
+            elif deal == 2:
+                res = "Does " + res
+        elif word.upos == "PROPN" or sentence.tokens[i].ner != "O":
+            res += word.text + " "
+        elif word.text in neg_words:
+            continue
+        elif word.text == "'" or word.text == "'s":
+            res = res[:-1]
+            res += word.text + " "
+        else:
+            res += uncap(word.text) + " "
+    
+    res = res[:-3]
+    res += "?"
+    print(res)
+    return
+
+        
 def generate():
     for sentence in doc.sentences:
         tree = sentence.constituency.children[0].children
     
-        if len(tree) != 3:
-            continue
-        if tree[0].label != "NP" or tree[1].label != "VP" or tree[2].label != ".":
+        if tree[0].label != "NP" or tree[1].label != "VP":
             continue
         verb = tree[1].children[0].children[0]
         verb = str(verb)
@@ -62,10 +101,11 @@ def generate():
             prevTag = sentence.words[i - 1].upos
             if word.text == verb:
                 if word.upos == "AUX" and (prevTag == "PROPN" or prevTag == "PRON" or prevTag == "NOUN"):
-                    question = binary_question(sentence, word.text)
-                    if question != "":
-                        print(question)
-                        
+                    binary_question_aux(sentence, word.text)
+                elif word.feats != None:
+                    binary_question_compound(sentence, word.text)
+                break
+                                           
 generate()
             
 
