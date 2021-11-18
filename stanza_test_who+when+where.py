@@ -37,7 +37,7 @@ def ask_when(sentence):
 
     answer = " In %s." % tokens['time']
 
-    return temp + '?' + answer
+    return temp + '?' # + answer
 
 def ask_who(sentence):
     word_list = ['Who']
@@ -73,7 +73,7 @@ def ask_who(sentence):
     temp = ' '.join(word_list)
     if temp[-1] == ' ': temp = temp[:-1]
 
-    return temp + '?' + ' ' + answer
+    return temp + '?' # + ' ' + answer
 
 def ask_where(sentence):
     word_list = ['Where']
@@ -118,7 +118,7 @@ def ask_where(sentence):
     temp = ' '.join(word_list)
     if temp[-1] == ' ': temp = temp[:-1]
 
-    return temp + '?' + ' ' + answer
+    return temp + '?' # + ' ' + answer
 
 
 
