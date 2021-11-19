@@ -7,7 +7,7 @@ f = open("11X11-Course-Project-Data/set1/a8.txt", "r", encoding="UTF-8")
 article = f.read()
 f.close()
 
-article = article[:10000]
+article = article[:20000]
 
 nlp = stanza.Pipeline(lang='en', processors='tokenize,mwt,pos,lemma,depparse,constituency,ner')
 
@@ -235,7 +235,7 @@ for sentence in doc.sentences:
     if temp_where is not None:
         questions_lst.append(temp_where)
 
-print(questions_lst)
+# print(questions_lst)
 
 
 
@@ -337,11 +337,8 @@ def search_component(tree, dic):
     return
 
 
-def is_main_verb(word):
-    return word.deprel == 'root' and word.upos == 'VERB' and word.xpos in ['VB', 'VBP', 'VBZ', 'VBD', 'VBG', 'VBN']
-
-
 
 
 for ques in questions_processed.sentences:
-    print(rating(ques))
+    if rating(ques) > 0:
+        print(ques.text)
