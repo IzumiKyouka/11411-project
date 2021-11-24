@@ -1,4 +1,5 @@
 import stanza
+import aesthetic
 
 
 ## Init Data ##
@@ -7,7 +8,7 @@ f = open("11X11-Course-Project-Data/set1/a8.txt", "r", encoding="UTF-8")
 article = f.read()
 f.close()
 
-article = article[:10000]
+article = article[:3000]
 
 nlp = stanza.Pipeline(lang='en', processors='tokenize,mwt,pos,lemma,depparse,constituency,ner')
 
@@ -25,6 +26,8 @@ def ask_when(sentence):
     if 'main_verb_lemma' not in tokens.keys(): return None
     if 'main_obj' not in tokens.keys(): return None
 
+    if tokens['main_subj'] not in tokens['entities']:
+        tokens['main_subj'] = tokens['main_subj'].lower()
     word_list.append(tokens['main_subj'])
     word_list.append(tokens['main_verb_lemma'])
     try:
@@ -101,6 +104,8 @@ def ask_where(sentence):
     answer = tokens['location']
     # second version: with prep (harder)
 
+    if tokens['main_subj'] not in tokens['entities']:
+        tokens['main_subj'] = tokens['main_subj'].lower()
     word_list.append(tokens['main_subj'])
     word_list.append(tokens['main_verb_lemma'])
     try:
@@ -134,6 +139,9 @@ def get_main_info(sentence):
                 if ent.text[i:i+4].isdigit():
                     return_tokens['time'] = ent.text
                     break
+    entities = [ent.text for ent in sentence.ents]
+    return_tokens['entities'] = entities
+    # print(entities)
 
     # identify action
     for word in sentence.words:
@@ -162,7 +170,7 @@ def get_main_info(sentence):
         # identify agent
         if child.label == 'NP':
             subj_list = []
-            add_to_list_all(subj_list, child)
+            add_to_list_all(subj_list, child, entities, True)
             subject = ' '.join(subj_list)
             return_tokens['main_subj'] = subject
         # identify event
@@ -200,13 +208,20 @@ def is_main_verb(word):
 def is_const_word(part):
     return len(part.children) == 0
 
-def add_to_list_all(lst, child):
+def add_to_list_all(lst, child, entity=[], subject=False):
     if not is_const_word(child):
         for g_child in child.children:
             add_to_list_all(lst, g_child)
     else:
         text = child.label
-        lst.append(text)
+        if not subject:
+            lst.append(text)
+        else:
+            if text in entity:
+                lst.append(text)
+            else:
+                lst.append(text.lower())
+                print(text, text.lower())
 
 def add_to_list_without_pp(lst, child):
     if not is_const_word(child):
@@ -223,17 +238,18 @@ def add_to_list_without_pp(lst, child):
     
 ## Main Run ##
 
+g = open("questions.txt", "w")
+
 for sentence in doc.sentences:
-    temp_who = ask_who(sentence)
-    temp_when = ask_when(sentence)
-    temp_where = ask_where(sentence)
+    temp_who = aesthetic.eliminate_space(ask_who(sentence))
+    temp_when = aesthetic.eliminate_space(ask_when(sentence))
+    temp_where = aesthetic.eliminate_space(ask_where(sentence))
     if temp_who is not None:
-        print()
-        print(temp_who)
+        g.write(temp_who+'\n')
     if temp_when is not None:
-        print()
-        print(temp_when)
+        g.write(temp_when+'\n')
     if temp_where is not None:
-        print()
-        print(temp_where)
+        g.write(temp_where+'\n')
+
+g.close()
 
