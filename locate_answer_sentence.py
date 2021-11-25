@@ -15,7 +15,7 @@ def locate_answer_sentence(filename, question):
     pairwise_similarity = tfidf * tfidf.T
        
     question_similarity = pairwise_similarity[-1].toarray()[0]
-    question_similarity[-1] = 0
+    question_similarity[-1] = -10000
     answer_index = np.argmax(question_similarity)
     return article_list[answer_index]
 
