@@ -15,7 +15,7 @@ def answer_when(closest):
 def answer_where(closest):
     tokens = info.get_main_info(closest)
     try:
-        return tokens['location']
+        return ' ' + tokens['location']
     except:
         return None
 
@@ -46,26 +46,29 @@ def classify(ques):
 
 ## Main run ##
 
-question = "When did Ronaldo score his 500th senior career goal for club and country?"
-question_sentence = nlp(question).sentences[0]
-sentence = locate.locate_answer_sentence("11X11-Course-Project-Data/set1/a8.txt", question)
-closest_sentence = nlp(sentence).sentences[0]
+questions = "When did Ronaldo score his 500th senior career goal for club and country? Where was Ronaldo born?"
+question_sentences = nlp(questions).sentences
 
-question_type = classify(question_sentence)
-if question_type == 'when':
-    print(answer_when(closest_sentence))
-elif question_type == 'where':
-    print(answer_where(closest_sentence))
-elif question_type in ['who', 'whom']:
-    print(answer_who_whom(closest_sentence))
-elif question_type == 'what':
-    print(answer_what(closest_sentence))
-elif question_type == 'which':
-    print(answer_which(closest_sentence))
-elif question_type == 'how':
-    print(answer_how(closest_sentence))
-elif question_type == 'binary':
-    pass
+for question in question_sentences:
+    question_text = question.text
+    sentence = locate.locate_answer_sentence("11X11-Course-Project-Data/set1/a8.txt", question_text)
+    closest_sentence = nlp(sentence).sentences[0]
+
+    question_type = classify(question)
+    if question_type == 'when':
+        print(answer_when(closest_sentence))
+    elif question_type == 'where':
+        print(answer_where(closest_sentence))
+    elif question_type in ['who', 'whom']:
+        print(answer_who_whom(closest_sentence))
+    elif question_type == 'what':
+        print(answer_what(closest_sentence))
+    elif question_type == 'which':
+        print(answer_which(closest_sentence))
+    elif question_type == 'how':
+        print(answer_how(closest_sentence))
+    elif question_type == 'binary':
+        pass
 
 
 
