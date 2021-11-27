@@ -31,6 +31,14 @@ def answer_which(closest):
 def answer_how(closest):
     pass
 
+def answer_binary(ques, sent):
+    for s in sent:
+        c = nlp(s).sentences[0]
+        res = info.compare_binary(ques, c)
+        if res:
+            return "Yes."
+    return "No."
+
 
 
 
@@ -51,8 +59,9 @@ question_sentences = nlp(questions).sentences
 
 for question in question_sentences:
     question_text = question.text
-    sentence = locate.locate_answer_sentence("11X11-Course-Project-Data/set1/a8.txt", question_text)
-    closest_sentence = nlp(sentence).sentences[0]
+    sentence = locate.locate_answer_sentence("11X11-Course-Project-Data/set1/a8.txt", question_text, 3)
+    closest_sentence = nlp(sentence[0]).sentences[0]
+    print(sentence)
 
     question_type = classify(question)
     if question_type == 'when':
@@ -68,6 +77,7 @@ for question in question_sentences:
     elif question_type == 'how':
         print(answer_how(closest_sentence))
     elif question_type == 'binary':
+        print(answer_binary(question, sentence))
         pass
 
 

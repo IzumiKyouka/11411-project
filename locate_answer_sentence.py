@@ -1,12 +1,19 @@
 from sklearn.feature_extraction.text import TfidfVectorizer
 import numpy as np
+import stanza
 
-# Uses the cosine similarity of the TF-IDF to locate the sentence that contains the answer
-def locate_answer_sentence(filename, question):
+nlp = stanza.Pipeline(lang='en', processors='tokenize')
+
+# Uses the cosine similarity of the TF-IDF to locate the top n most possible sentences that contains the answer
+def locate_answer_sentence(filename, question, n):
     f = open(filename, "r", encoding="UTF-8")
-    article = f.read()
-    article = article.replace(";", ".")
-    article_list = article.split(".")
+    text = f.read()
+    article = nlp(text)
+    article_list = []
+    for sentence in article.sentences:
+        article_list.append(sentence.text)
+    # article = article.replace(";", ".")
+    # article_list = article.split(".")
     f.close()
     
     article_list.append(question)
@@ -16,7 +23,12 @@ def locate_answer_sentence(filename, question):
        
     question_similarity = pairwise_similarity[-1].toarray()[0]
     question_similarity[-1] = -10000
-    answer_index = np.argmax(question_similarity)
-    return article_list[answer_index]
+    res = []
+    for i in range(n):
+        answer_index = np.argmax(question_similarity)
+        res.append(article_list[answer_index])
+        question_similarity[answer_index] = -10000
+    
+    return res
 
 

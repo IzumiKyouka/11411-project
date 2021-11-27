@@ -1,3 +1,4 @@
+from nltk.corpus import wordnet
 ## Information Seeker ##
 
 def get_main_info(sentence):
@@ -62,9 +63,46 @@ def get_main_info(sentence):
     
     return return_tokens
 
+def compare_binary(question, sentence):
+    must_include = ["NOUN", "ADJ", "VERB", "PROPN", "NUM"]
+    negations = ["no", "not", "none", "never", "cannot"]
+    res = 0
+    for word in question.words:
+        if word.lemma in negations:
+            res += 1
+        if word.upos in must_include:
+            tmp = exists(word.lemma, sentence)
+            if  tmp == -1:
+                return False
+            res += tmp
+    for word in sentence.words:
+        if word.lemma in negations:
+            res += 1
+    return res % 2 == 0
 
 
 ## Helper Functions ##
+
+def exists(word, sentence):
+    synonyms = []
+    antonyms = []
+    for syn in wordnet.synsets(word):
+        for l in syn.lemmas():
+            synonyms.append(l.name())
+            if l.antonyms():
+                antonyms.append(l.antonyms()[0].name())
+    synonyms = set(synonyms)
+    antonyms = set(antonyms)
+    # print(word, synonyms)
+    # print(word, antonyms)
+    for sent_word in sentence.words:
+        word_lemma = sent_word.lemma
+        if word_lemma == word or word_lemma in synonyms:
+            return 0
+        if word_lemma in antonyms:
+            return 1
+    return -1
+        
 
 def find_head(word):
     return word.head
