@@ -19,8 +19,43 @@ def answer_where(closest):
     except:
         return None
 
-def answer_who_whom(closest):
-    pass
+
+def answer_in_sentence_who_whom(question, sentence):
+    answer_doc = nlp(sentence)
+    question_doc = nlp(question)
+    candi = list()
+
+    # if answer sentence only has one ent with type "PERSON", return that as answer
+    for ent in answer_doc.ents:
+        if ent.type == "PERSON":
+            candi.append(ent)
+    if len(candi) == 1:
+        print(candi[0])
+        return candi[0].text
+
+    # if there are more than 1 ent, we decide by matching the relation between the verb and the subject between Q and A
+    target = None
+    if len(candi) > 1:
+        for sent in question_doc.sentences:
+            for word in sent.words:
+                if word.deprel == "nsubj":
+                    target = "nsubj"
+                if word.deprel == "nsubj:pass":
+                    target = "nsubj:pass"
+        if target is not None:
+            for sent in answer_doc.sentences:
+                for word in sent.words:
+                    if word.deprel == target:
+                        for c in candi:
+                            if str(word) == c.text:
+                                return str(word)
+
+    # if this still doesn't work, we just use the dependency parsing to find an answer.
+    for sent in answer_doc.sentences:
+        for word in sent.words:
+            if word.deprel == target:
+                return str(word)
+
 
 def answer_what(closest):
     pass
