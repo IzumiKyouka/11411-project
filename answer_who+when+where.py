@@ -104,7 +104,7 @@ for question in question_sentences:
     elif question_type == 'where':
         print(answer_where(closest_sentence))
     elif question_type in ['who', 'whom']:
-        print(answer_who_whom(closest_sentence))
+        print(answer_in_sentence_who_whom(question, closest_sentence))
     elif question_type == 'what':
         print(answer_what(closest_sentence))
     elif question_type == 'which':
