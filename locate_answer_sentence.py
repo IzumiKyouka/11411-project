@@ -6,6 +6,21 @@ nlp = stanza.Pipeline(lang='en', processors='tokenize')
 
 # Uses the cosine similarity of the TF-IDF to locate the top n most possible sentences that contains the answer
 def locate_answer_sentence(filename, question, n):
+    """
+    Parameters
+    ----------
+    filename : str
+        The address of the input text file
+    question : str
+        The input question
+    n : int
+        The number of closest sentencelegs the animal (default is 4)
+
+    Return
+    ----------
+    res : list
+        A list of n sentences that are closest to the input question.
+    """
     f = open(filename, "r", encoding="UTF-8")
     text = f.read()
     article = nlp(text)
