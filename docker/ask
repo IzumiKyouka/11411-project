@@ -5,6 +5,7 @@ import random
 import sys
 import stanza
 from . import aesthetic 
+from . import binary
 from . import information as info
 from . import rankings as rank
 
@@ -15,9 +16,6 @@ questions_lst = list()
 #####################################################################################################
 #####################################################################################################
 #####################################################################################################
-################################From stanza_test_who+when+where.py###################################
-#####################################################################################################
-###################################For Who/when/where Questions######################################
 #####################################################################################################
 #####################################################################################################
 
@@ -133,6 +131,69 @@ def ask_where(sentence):
 
     return temp + '?' # + ' ' + answer
 
+def ask_what(sentence):
+    word_list = ['What']
+
+    tokens = info.get_main_info(sentence)
+    if 'main_verb' not in tokens.keys(): return None
+    if 'main_verb_tense' not in tokens.keys(): return None
+    if 'main_obj' not in tokens.keys(): return None
+    if 'main_subj' not in tokens.keys(): return None
+
+    if tokens['main_verb_lemma'] == 'be':
+        word_list.append(tokens['main_verb'])
+        word_list.append(tokens['main_subj'])
+        answer = tokens['main_obj']
+    else:
+        asking_aux = None
+        if tokens['main_verb_tense'] == 'VB': asking_aux = 'do'
+        elif tokens['main_verb_tense'] == 'VBD': asking_aux = 'did'
+        # elif tokens['main_verb_tense'] == 'VBN':
+        #     asking_aux = ''
+        elif tokens['main_verb_tense'] == 'VBP': asking_aux = 'do'
+        elif tokens['main_verb_tense'] == 'VBZ':
+            asking_aux = 'does'
+        if asking_aux == None: return None
+        word_list.append(asking_aux)
+        word_list.append(tokens['main_subj'])
+        word_list.append(tokens['main_verb_lemma'])
+        try:
+            word_list.append('in')
+            word_list.append(tokens['location'])
+        except:
+            pass
+        try:
+            word_list.append(tokens['time'])
+        except:
+            pass
+    
+    temp = ' '.join(word_list)
+    if temp[-1] == ' ': temp = temp[:-1]
+
+    return temp + '?'
+
+def ask_binary(sentence):
+    tree = sentence.constituency.children[0].children
+
+    if tree[0].label != "NP" or tree[1].label != "VP": return
+
+    verb = tree[1].children[0].children[0]
+    verb = str(verb)
+    if len(sentence.words) > 15: return
+
+    ques = None
+    for i, word in enumerate(sentence.words):
+        if i == 0:
+            continue
+        prevTag = sentence.words[i - 1].upos
+        if word.text == verb:
+            if word.upos == "AUX" and (prevTag == "PROPN" or prevTag == "PRON" or prevTag == "NOUN"):
+                ques = binary.binary_question_aux(sentence, word.text)
+            elif word.feats != None:
+                ques = binary.binary_question_compound(sentence, word.text)
+            break
+    return ques                                  
+
 
 
 
@@ -152,15 +213,21 @@ if __name__ == "__main__":
     doc = nlp(article)
 
     for sentence in doc.sentences:
+        temp_binary = ask_binary(sentence)
         temp_who = aesthetic.eliminate_space(ask_who(sentence))
         temp_when = aesthetic.eliminate_space(ask_when(sentence))
         temp_where = aesthetic.eliminate_space(ask_where(sentence))
+        temp_what = aesthetic.eliminate_space(ask_what(sentence))
+        if temp_binary is not None:
+            questions_lst.append(temp_binary)
         if temp_who is not None:
             questions_lst.append(temp_who)
         if temp_when is not None:
             questions_lst.append(temp_when)
         if temp_where is not None:
             questions_lst.append(temp_where)
+        if temp_what is not None:
+            questions_lst.append(temp_what)
 
     questions_lst_processed = []
     for ques in questions_lst:

@@ -1,4 +1,5 @@
 import stanza
+import aesthetic
 import information as info
 import locate_answer_sentence as locate
 
@@ -8,19 +9,19 @@ nlp = stanza.Pipeline(lang='en', processors='tokenize,mwt,pos,lemma,depparse,con
 def answer_when(closest):
     tokens = info.get_main_info(closest)
     try:
-        return " In %s." % tokens['time']
+        return "In %s." % tokens['time']
     except:
         return None
 
 def answer_where(closest):
     tokens = info.get_main_info(closest)
     try:
-        return ' ' + tokens['location']
+        return tokens['location']
     except:
         return None
 
 
-def answer_in_sentence_who_whom(question, sentence):
+def answer_who_whom(question, sentence):
     answer_doc = nlp(sentence)
     question_doc = nlp(question)
     candi = list()
@@ -57,8 +58,25 @@ def answer_in_sentence_who_whom(question, sentence):
                 return str(word)
 
 
-def answer_what(closest):
-    pass
+def answer_what_which(closest, question):
+    tree = question.constituency
+    qtokens = dict()
+    info.get_main_info_ques(qtokens, tree)
+    if 'ask_verb' not in qtokens: return
+
+    atokens = info.get_main_info(closest)
+    
+    # identify asking verb
+    if qtokens['ask_verb'] in ['am', 'are', 'is', 'was', 'were']:
+        try:
+            return atokens['main_subj']
+        except:
+            return None
+    else:
+        try:
+            return atokens['main_obj']
+        except:
+            return None
 
 def answer_which(closest):
     pass
@@ -89,31 +107,35 @@ def classify(ques):
 
 ## Main run ##
 
-questions = "When did Ronaldo score his 500th senior career goal for club and country? Where was Ronaldo born?"
+questions = "When did Ronaldo score his 500th senior career goal for club and country? Where was Ronaldo born? What did Ronaldo score in September 2015?"
 question_sentences = nlp(questions).sentences
 
 for question in question_sentences:
     question_text = question.text
-    sentence = locate.locate_answer_sentence("11X11-Course-Project-Data/set1/a8.txt", question_text, 3)
-    closest_sentence = nlp(sentence[0]).sentences[0]
-    print(sentence)
+    sentences = locate.locate_answer_sentence("11X11-Course-Project-Data/set1/a8.txt", question_text, 3)
 
-    question_type = classify(question)
-    if question_type == 'when':
-        print(answer_when(closest_sentence))
-    elif question_type == 'where':
-        print(answer_where(closest_sentence))
-    elif question_type in ['who', 'whom']:
-        print(answer_in_sentence_who_whom(question, closest_sentence))
-    elif question_type == 'what':
-        print(answer_what(closest_sentence))
-    elif question_type == 'which':
-        print(answer_which(closest_sentence))
-    elif question_type == 'how':
-        print(answer_how(closest_sentence))
-    elif question_type == 'binary':
-        print(answer_binary(question, sentence))
-        pass
+    for sentence in sentences:
+        closest_sentence = nlp(sentence).sentences[0]
+
+        question_type = classify(question)
+        answer = None
+        if question_type == 'when':
+            answer = answer_when(closest_sentence)
+        elif question_type == 'where':
+            answer = answer_where(closest_sentence)
+        elif question_type in ['who', 'whom']:
+            answer = answer_who_whom(question, closest_sentence)
+        elif question_type in ['what', 'which', 'whose']:
+            answer = answer_what_which(closest_sentence, question)
+        elif question_type == 'how':
+            answer = answer_how(closest_sentence)
+        elif question_type == 'binary':
+            answer = answer_binary(question, sentence)
+        
+        if answer is not None:
+            print(aesthetic.capitalize_init(answer))
+            break
+
 
 
 

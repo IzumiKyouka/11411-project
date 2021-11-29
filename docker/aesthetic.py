@@ -9,3 +9,9 @@ def eliminate_space(question):
             question = question[:i-1] + question[i:]
         i += 1
     return question
+
+def capitalize_init(text):
+    return text.capitalize()
+
+def decapitalize_noninit(text):
+    pass

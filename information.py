@@ -17,7 +17,7 @@ def get_main_info(sentence):
 
     # identify action
     for word in sentence.words:
-        if is_main_verb(word):
+        if is_main_verb(word) or is_aux_verb(word):
             return_tokens['main_verb'] = word.text
             return_tokens['main_verb_lemma'] = word.lemma
             return_tokens['main_verb_tense'] = word.xpos
@@ -42,7 +42,7 @@ def get_main_info(sentence):
         # identify agent
         if child.label == 'NP':
             subj_list = []
-            add_to_list_all(subj_list, child, entities, True)
+            add_to_list_all(subj_list, child, entities)
             subject = ' '.join(subj_list)
             return_tokens['main_subj'] = subject
         # identify event
@@ -50,18 +50,39 @@ def get_main_info(sentence):
             obj_list = []
             obj_list_nopp = []
             for g_child in child.children:
-                if g_child.label == 'VBD':
+                if g_child.label in ['VB', 'VBP', 'VBZ', 'VBD', 'VBG', 'VBN']:
                     verb = g_child.children[0].label
                     # return_tokens['main_verb'] = verb
                 elif g_child.label == 'NP':
-                    add_to_list_all(obj_list, g_child)
-                    add_to_list_without_pp(obj_list_nopp, g_child)
+                    add_to_list_all(obj_list, g_child, entities)
+                    add_to_list_without_pp(obj_list_nopp, g_child, entities)
                     object = ' '.join(obj_list)
                     object_nopp = ' '.join(obj_list_nopp)
                     return_tokens['main_obj'] = object
                     return_tokens['main_obj_nopp'] = object_nopp
     
     return return_tokens
+
+def get_main_info_ques(dic, tree):
+    if tree.label in ['WHADJP', 'WHAVP', 'WHNP', 'WHPP']:
+        dic['type'] = tree.label
+    elif tree.label == 'SQ':
+        for child in tree.children:
+            if child.label == 'VP':
+                for g_child in child.children:
+                    if g_child.label in ['VB', 'VBP', 'VBZ', 'VBD', 'VBG', 'VBN'] and 'ask_verb' not in dic:
+                        dic['ask_verb'] = g_child.children[0].label
+                    elif g_child.label == 'NP' and 'main_object' not in dic:
+                        lst1 = []
+                        add_to_list_all(lst1, g_child)
+                        dic['main_object'] = ' '.join(lst1)
+                    elif g_child.label == 'VP':
+                        lst2 = []
+                        add_to_list_all(lst2, g_child)
+                        dic['verb_cont'] = ' '.join(lst2)
+    else:
+        for child in tree.children:
+            get_main_info_ques(dic, child)
 
 def compare_binary(question, sentence):
     must_include = ["NOUN", "ADJ", "VERB", "PROPN", "NUM"]
@@ -114,30 +135,42 @@ def find_root(sentence):
 def is_main_verb(word):
     return word.deprel == 'root' and word.upos == 'VERB' and word.xpos in ['VB', 'VBP', 'VBZ', 'VBD', 'VBG', 'VBN']
 
+def is_aux_verb(word):
+    return word.deprel == 'cop' and word.upos == 'AUX'
+
 def is_const_word(part):
     return len(part.children) == 0
 
-def add_to_list_all(lst, child, entity=[], subject=False):
+def add_to_list_all(lst, child, entity=[]):
     if not is_const_word(child):
         for g_child in child.children:
-            add_to_list_all(lst, g_child)
+            add_to_list_all(lst, g_child, entity)
     else:
         text = child.label
-        if not subject:
-            lst.append(text)
+        if text not in entity:
+            lst.append(text.lower())
         else:
-            if text in entity:
-                lst.append(text)
-            else:
-                lst.append(text.lower())
-                print(text, text.lower())
+            lst.append(text)
 
-def add_to_list_without_pp(lst, child):
+def add_to_list_without_pp(lst, child, entity=[]):
     if not is_const_word(child):
         for g_child in child.children:
             if g_child.label == 'PP':
                 continue
-            add_to_list_all(lst, g_child)
+            add_to_list_all(lst, g_child, entity)
     else:
         text = child.label
-        lst.append(text)
+        if text not in entity:
+            lst.append(text.lower())
+        else:
+            lst.append(text)
+
+def is_pron(text):
+    text = text.lower()
+    lst = ['I', 'me', 'my', 'mine',
+           'you', 'your', 'your', 
+           'he', 'him', 'his', 
+           'she', 'her', 'hers',
+           'it', 'its',
+           'they', 'them', 'their', 'theirs']
+    return text in lst

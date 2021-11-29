@@ -126,6 +126,46 @@ def ask_where(sentence):
 
     return temp + '?' # + ' ' + answer
 
+def ask_what(sentence):
+    word_list = ['What']
+
+    tokens = info.get_main_info(sentence)
+    if 'main_verb' not in tokens.keys(): return None
+    if 'main_verb_tense' not in tokens.keys(): return None
+    if 'main_obj' not in tokens.keys(): return None
+    if 'main_subj' not in tokens.keys(): return None
+
+    if tokens['main_verb_lemma'] == 'be':
+        word_list.append(tokens['main_verb'])
+        word_list.append(tokens['main_subj'])
+        answer = tokens['main_obj']
+    else:
+        asking_aux = None
+        if tokens['main_verb_tense'] == 'VB': asking_aux = 'do'
+        elif tokens['main_verb_tense'] == 'VBD': asking_aux = 'did'
+        # elif tokens['main_verb_tense'] == 'VBN':
+        #     asking_aux = ''
+        elif tokens['main_verb_tense'] == 'VBP': asking_aux = 'do'
+        elif tokens['main_verb_tense'] == 'VBZ':
+            asking_aux = 'does'
+        if asking_aux == None: return None
+        word_list.append(asking_aux)
+        word_list.append(tokens['main_subj'])
+        word_list.append(tokens['main_verb_lemma'])
+        try:
+            word_list.append('in')
+            word_list.append(tokens['location'])
+        except:
+            pass
+        try:
+            word_list.append(tokens['time'])
+        except:
+            pass
+    
+    temp = ' '.join(word_list)
+    if temp[-1] == ' ': temp = temp[:-1]
+
+    return temp + '?'
 
 
 
@@ -137,12 +177,15 @@ for sentence in doc.sentences:
     temp_who = aesthetic.eliminate_space(ask_who(sentence))
     temp_when = aesthetic.eliminate_space(ask_when(sentence))
     temp_where = aesthetic.eliminate_space(ask_where(sentence))
+    temp_what = aesthetic.eliminate_space(ask_what(sentence))
     if temp_who is not None:
         g.write(temp_who+'\n')
     if temp_when is not None:
         g.write(temp_when+'\n')
     if temp_where is not None:
         g.write(temp_where+'\n')
+    if temp_what is not None:
+        g.write(temp_what+'\n')
 
 g.close()
 
