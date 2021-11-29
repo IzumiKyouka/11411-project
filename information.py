@@ -1,5 +1,13 @@
 from nltk.corpus import wordnet
+import stanza
+import aesthetic
+import information as info
+import locate_answer_sentence as locate
+
 ## Information Seeker ##
+
+nlp = stanza.Pipeline(lang='en', processors='tokenize,mwt,pos,lemma,depparse,constituency,ner')
+
 
 def get_main_info(sentence):
     return_tokens = dict()
@@ -85,18 +93,32 @@ def get_main_info_ques(dic, tree):
             get_main_info_ques(dic, child)
 
 def compare_binary(question, sentence):
+    """
+    Parameters
+    ----------
+    question : str
+        The input question
+    sentence : str
+        The sentence that is closest to the question
+
+    Return
+    ----------
+    ???
+    """
+    question_stanza = nlp(question).sentences[0]
+    sentence_stanza = nlp(sentence).sentences[0]
     must_include = ["NOUN", "ADJ", "VERB", "PROPN", "NUM"]
     negations = ["no", "not", "none", "never", "cannot"]
     res = 0
-    for word in question.words:
+    for word in question_stanza.words:
         if word.lemma in negations:
             res += 1
         if word.upos in must_include:
-            tmp = exists(word.lemma, sentence)
+            tmp = exists(word.lemma, sentence_stanza)
             if  tmp == -1:
                 return False
             res += tmp
-    for word in sentence.words:
+    for word in sentence_stanza.words:
         if word.lemma in negations:
             res += 1
     return res % 2 == 0

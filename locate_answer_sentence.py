@@ -18,7 +18,7 @@ def locate_answer_sentence(filename, question, n):
 
     Return
     ----------
-    res : list
+    list
         A list of n sentences that are closest to the input question.
     """
     f = open(filename, "r", encoding="UTF-8")
