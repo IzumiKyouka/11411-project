@@ -144,27 +144,25 @@ if __name__ == "__main__":
 
         located = locate.locate_answer_sentence(article_list, question.text, 3)
         # located = sim.locate_answer_sentence_w_bert(article_list, question, 3)
+        if question_type == 'binary':
+            answer = answer_binary(question, located)
+        else:
+            for sent in located:
+                sentence = nlp(sent).sentences[0]
+                if question_type == 'when':
+                    answer = answer_when(sentence)
+                elif question_type == 'where':
+                    answer = answer_where(sentence)
+                elif question_type in ['who', 'whom']:
+                    answer = answer_who_whom(question, sentence)
+                elif question_type in ['what', 'which', 'whose']:
+                    answer = answer_what_which(sentence, question)
+                elif question_type == 'how':
+                    answer = answer_how(sentence)
+                if answer is not None:
+                    break
 
-        for sent in located:
-            sentence = nlp(sent).sentences[0]
-            if question_type == 'when':
-                answer = answer_when(sentence)
-            elif question_type == 'where':
-                answer = answer_where(sentence)
-            elif question_type in ['who', 'whom']:
-                answer = answer_who_whom(question, sentence)
-            elif question_type in ['what', 'which', 'whose']:
-                answer = answer_what_which(sentence, question)
-            elif question_type == 'how':
-                answer = answer_how(sentence)
-            elif question_type == 'binary':
-                answer = answer_binary(question, located)
-                print(answer)
-                break
-            
-            if answer is not None:
-                print('A: ' + aesthetic.wrapping(answer))
-                break
-
+        if answer is not None:
+            print('A: ' + aesthetic.wrapping(answer))
         if answer is None:
             print("A: There doesn't seem to be a response.")
