@@ -158,7 +158,9 @@ if __name__ == "__main__":
             elif question_type == 'how':
                 answer = answer_how(sentence)
             elif question_type == 'binary':
-                answer = answer_binary(question, sentence)
+                answer = answer_binary(question, located)
+                print(answer)
+                break
             
             if answer is not None:
                 print('A: ' + aesthetic.wrapping(answer))
