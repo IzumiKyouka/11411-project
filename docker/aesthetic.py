@@ -15,3 +15,9 @@ def capitalize_init(text):
 
 def decapitalize_noninit(text):
     pass
+
+def wrapping(text):
+    text = capitalize_init(text)
+    if text[-1] not in ['.', '!', '?']:
+        text = text + '.'
+    return text

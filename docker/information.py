@@ -1,5 +1,14 @@
 from nltk.corpus import wordnet
+import nltk
+import stanza
+import aesthetic
+import information as info
+import locate_answer_sentence as locate
+
 ## Information Seeker ##
+
+# nltk.download('wordnet')
+
 
 def get_main_info(sentence):
     return_tokens = dict()
@@ -49,10 +58,13 @@ def get_main_info(sentence):
         if child.label == 'VP':
             obj_list = []
             obj_list_nopp = []
+            descriptive_list = []
+            method_list = []
             for g_child in child.children:
                 if g_child.label in ['VB', 'VBP', 'VBZ', 'VBD', 'VBG', 'VBN']:
                     verb = g_child.children[0].label
-                    # return_tokens['main_verb'] = verb
+                    if 'main_verb' not in return_tokens:
+                        return_tokens['main_verb'] = verb
                 elif g_child.label == 'NP':
                     add_to_list_all(obj_list, g_child, entities)
                     add_to_list_without_pp(obj_list_nopp, g_child, entities)
@@ -60,6 +72,15 @@ def get_main_info(sentence):
                     object_nopp = ' '.join(obj_list_nopp)
                     return_tokens['main_obj'] = object
                     return_tokens['main_obj_nopp'] = object_nopp
+                elif g_child.label in ['ADJP', 'ADVP']:
+                    add_to_list_all(descriptive_list, g_child, entities)
+                    descriptive = ' '.join(descriptive_list)
+                    return_tokens['descript'] = descriptive
+                elif g_child.label == 'PP' and 'time' not in return_tokens and 'location' not in return_tokens:
+                    add_to_list_all(method_list, g_child, entities)
+                    methods = ' '.join(method_list)
+                    return_tokens['method'] = methods
+
     
     return return_tokens
 

@@ -238,4 +238,4 @@ if __name__ == "__main__":
     questions_lst_processed.sort(key=lambda x:x[1])
 
     for i in range(N):
-        print('Q ' + questions_lst.pop())
+        print('Q: ' + questions_lst.pop())

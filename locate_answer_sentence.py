@@ -1,35 +1,12 @@
 from sklearn.feature_extraction.text import TfidfVectorizer
 import numpy as np
-import stanza
 
-nlp = stanza.Pipeline(lang='en', processors='tokenize')
 
 # Uses the cosine similarity of the TF-IDF to locate the top n most possible sentences that contains the answer
-def locate_answer_sentence(filename, question, n):
-    """
-    Parameters
-    ----------
-    filename : str
-        The address of the input text file
-    question : str
-        The input question
-    n : int
-        The number of closest sentencelegs the animal (default is 4)
-
-    Return
-    ----------
-    list
-        A list of n sentences that are closest to the input question.
-    """
-    f = open(filename, "r", encoding="UTF-8")
-    text = f.read()
-    article = nlp(text)
-    article_list = []
-    for sentence in article.sentences:
-        article_list.append(sentence.text)
+def locate_answer_sentence(article_list, question, n):
     # article = article.replace(";", ".")
     # article_list = article.split(".")
-    f.close()
+
     
     article_list.append(question)
     vect = TfidfVectorizer(min_df=1, stop_words="english", ngram_range=(1,3))
@@ -43,6 +20,8 @@ def locate_answer_sentence(filename, question, n):
         answer_index = np.argmax(question_similarity)
         res.append(article_list[answer_index])
         question_similarity[answer_index] = -10000
+    
+    article_list = article_list[:-1]
     
     return res
 

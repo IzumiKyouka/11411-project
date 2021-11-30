@@ -29,8 +29,8 @@ def answer_where(closest):
 
 
 def answer_who_whom(question, sentence):
-    answer_doc = nlp(sentence)
-    question_doc = nlp(question)
+    answer_doc = sentence
+    question_doc = question
     candi = list()
 
     # if answer sentence only has one ent with type "PERSON", return that as answer
@@ -86,7 +86,14 @@ def answer_what_which(closest, question):
             return None
 
 def answer_how(closest):
-    pass
+    tokens = info.get_main_info(closest)
+    try:
+        if tokens['main_verb_lemma'] == 'be':
+            return tokens['descript']
+        else:
+            return tokens['method']
+    except:
+        return None
 
 def answer_binary(ques, sent):
     for s in sent:
@@ -104,7 +111,9 @@ def classify(ques):
     for word in ques.words:
         if word.text.lower() in ['who', 'whom', 'when', 'where', 'what', 'which', 'how']:
             return word.text.lower()
-    return 'binary'
+        elif word.upos == 'AUX' and (word.xpos == 'MD' or (word.lemma == 'be')) and word.text != word.text.lower():
+            return 'binary'
+    return 'others'
 
 
 
@@ -117,6 +126,11 @@ if __name__ == "__main__":
     article = fa.read()
     fa.close()
 
+    doc = nlp(article)
+    article_list = []
+    for sentence in doc.sentences:
+        article_list.append(sentence.text)
+
     fq = open(question_file, "r", encoding="UTF-8")
     question_string = fq.read()
     fq.close()
@@ -124,27 +138,30 @@ if __name__ == "__main__":
     question_sentences = nlp(question_string).sentences
     
     for question in question_sentences:
-        question_text = question.text
-        sentences = locate.locate_answer_sentence(article, question_text, 3)
+        question_type = classify(question)
+        answer = None
 
-        for sentence in sentences:
-            closest_sentence = nlp(sentence).sentences[0]
+        located = locate.locate_answer_sentence(article_list, question.text, 3)
+        # located = sim.locate_answer_sentence_w_bert(article_list, question, 3)
 
-            question_type = classify(question)
-            answer = None
+        for sent in located:
+            sentence = nlp(sent).sentences[0]
             if question_type == 'when':
-                answer = answer_when(closest_sentence)
+                answer = answer_when(sentence)
             elif question_type == 'where':
-                answer = answer_where(closest_sentence)
+                answer = answer_where(sentence)
             elif question_type in ['who', 'whom']:
-                answer = answer_who_whom(question, closest_sentence)
+                answer = answer_who_whom(question, sentence)
             elif question_type in ['what', 'which', 'whose']:
-                answer = answer_what_which(closest_sentence, question)
+                answer = answer_what_which(sentence, question)
             elif question_type == 'how':
-                answer = answer_how(closest_sentence)
+                answer = answer_how(sentence)
             elif question_type == 'binary':
                 answer = answer_binary(question, sentence)
             
             if answer is not None:
-                print('A ' + aesthetic.capitalize_init(answer))
+                print('A: ' + aesthetic.wrapping(answer))
                 break
+
+        if answer is None:
+            print("A: There doesn't seem to be a response.")

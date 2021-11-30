@@ -44,7 +44,9 @@ def rating(question):
         if 'object' in dic.keys(): count += 1
         if 'space' in dic.keys(): count += 1
         if 'time' in dic.keys(): count += 1
-        return count
+        if 'descript' in dic.keys(): count += 1
+        if 'method' in dic.keys(): count += 1
+        return count % 5
 
 
 def identify(question):
