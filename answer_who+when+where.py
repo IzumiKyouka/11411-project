@@ -94,10 +94,7 @@ def answer_binary(ques, sentence):
     res = info.compare_binary(ques, sentence)
     if res:
         return "Yes."
-    elif not res:
-        return "No."
-    else:
-        return None
+    return None
 
 
 
@@ -153,7 +150,9 @@ for question in questions_stz.sentences:
             print(aesthetic.wrapping(answer))
             break
 
-    if answer is None:
+    if question_type == 'binary':
+        print("No.")
+    elif answer is None:
         print("There doesn't seem to be an answer.")
 
 
