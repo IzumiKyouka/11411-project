@@ -215,7 +215,7 @@ if __name__ == "__main__":
     doc = nlp(article)
 
     for i, sentence in enumerate(doc.sentences):
-        temp_binary = ask_binary(sentence, i)
+        temp_binary = ask_binary(sentence, doc, i)
         temp_who = aesthetic.eliminate_space(ask_who(sentence, doc, i))
         temp_when = aesthetic.eliminate_space(ask_when(sentence, doc, i))
         temp_where = aesthetic.eliminate_space(ask_where(sentence, doc, i))
