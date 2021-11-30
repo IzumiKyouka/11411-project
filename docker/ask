@@ -4,10 +4,10 @@
 import random
 import sys
 import stanza
-from . import aesthetic 
-from . import binary
-from . import information as info
-from . import rankings as rank
+import aesthetic
+import binary
+import information as info
+import rankings as rank
 
 #stanza.download('en')
 questions_lst = list()
@@ -199,14 +199,16 @@ def ask_binary(sentence):
 
 if __name__ == "__main__":
 
-    input_file = sys.argv[1]
+#    input_file = sys.argv[1]
+    input_file = '11X11-Course-Project-Data/set1/a8.txt'
     f = open(input_file, "r", encoding="UTF-8")
     article = f.read()
     f.close()
 
     article = article[:20000]
 
-    N = int(sys.argv[2])
+#    N = int(sys.argv[2])
+    N = 20
 
     nlp = stanza.Pipeline(lang='en', processors='tokenize,mwt,pos,lemma,depparse,constituency,ner')
     
@@ -238,4 +240,4 @@ if __name__ == "__main__":
     questions_lst_processed.sort(key=lambda x:x[1])
 
     for i in range(N):
-        print('Q: ' + questions_lst.pop())
+        print('Q: ' + questions_lst_processed.pop()[0].text)
