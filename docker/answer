@@ -6,7 +6,7 @@ import numpy as np
 import sys
 import aesthetic
 import information as info
-from . import locate_answer_sentence as locate
+import locate_answer_sentence as locate
 
 nlp = stanza.Pipeline(lang='en', processors='tokenize,mwt,pos,lemma,depparse,constituency,ner')
 
@@ -38,31 +38,30 @@ def answer_who_whom(question, sentence):
         if ent.type == "PERSON":
             candi.append(ent)
     if len(candi) == 1:
-        print(candi[0])
         return candi[0].text
 
     # if there are more than 1 ent, we decide by matching the relation between the verb and the subject between Q and A
     target = None
     if len(candi) > 1:
-        for sent in question_doc.sentences:
-            for word in sent.words:
-                if word.deprel == "nsubj":
-                    target = "nsubj"
-                if word.deprel == "nsubj:pass":
-                    target = "nsubj:pass"
+#        for sent in question_doc.sentences:
+        for word in question_doc.words:
+            if word.deprel == "nsubj":
+                target = "nsubj"
+            if word.deprel == "nsubj:pass":
+                target = "nsubj:pass"
         if target is not None:
-            for sent in answer_doc.sentences:
-                for word in sent.words:
-                    if word.deprel == target:
-                        for c in candi:
-                            if str(word) == c.text:
-                                return str(word)
+#           for sent in answer_doc.sentences:
+            for word in answer_doc.words:
+                if word.deprel == target:
+                    for c in candi:
+                        if str(word.text) == c.text:
+                            return str(word.text)
 
     # if this still doesn't work, we just use the dependency parsing to find an answer.
-    for sent in answer_doc.sentences:
-        for word in sent.words:
-            if word.deprel == target:
-                return str(word)
+#    for sent in answer_doc.sentences:
+    for word in answer_doc.words:
+        if word.deprel == target:
+            return str(word.text)
 
 
 def answer_what_which(closest, question):
@@ -119,8 +118,10 @@ def classify(ques):
 
 
 if __name__ == "__main__":
-    input_file = sys.argv[1]
-    question_file = sys.argv[2]
+#    input_file = sys.argv[1]
+#    question_file = sys.argv[2]
+    input_file = '11X11-Course-Project-Data/set1/a1.txt'
+    question_file = 'test_questions.txt'
 
     fa = open(input_file, "r", encoding="UTF-8")
     article = fa.read()
