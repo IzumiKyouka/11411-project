@@ -1,12 +1,15 @@
 import stanza
 import information as info
 
-f = open("11X11-Course-Project-Data/set1/a8.txt", "r", encoding="UTF-8")
-article = f.read()
-f.close()
+# f = open("11X11-Course-Project-Data/set1/a8.txt", "r", encoding="UTF-8")
+# article = f.read()
+# f.close()
+article = "What did he come in the middle of 2003?"
 nlp = stanza.Pipeline(lang='en', processors='tokenize,mwt,pos,ner,constituency,lemma, depparse')
 
 doc = nlp(article)
+for s in doc.sentences:
+    print(s.words)
 
 
 def uncap(s):

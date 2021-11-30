@@ -24,7 +24,7 @@ questions_lst = list()
 
 ## Question Generators ##
 
-def ask_when(sentence, doc, i):
+def ask_when(sentence):
     word_list = ['When', 'did']
 
     tokens = info.get_main_info(sentence)
@@ -46,9 +46,9 @@ def ask_when(sentence, doc, i):
 
     answer = " In %s." % tokens['time']
 
-    return info.replace_pron(temp + '?', doc, i) # + answer
+    return temp + '?' # + answer
 
-def ask_who(sentence, doc, i):
+def ask_who(sentence):
     word_list = ['Who']
 
     tokens = info.get_main_info(sentence)
@@ -82,9 +82,9 @@ def ask_who(sentence, doc, i):
     temp = ' '.join(word_list)
     if temp[-1] == ' ': temp = temp[:-1]
 
-    return info.replace_pron(temp + '?', doc, i) # + ' ' + answer
+    return temp + '?' # + ' ' + answer
 
-def ask_where(sentence, doc, i):
+def ask_where(sentence):
     word_list = ['Where']
 
     tokens = info.get_main_info(sentence)
@@ -129,9 +129,9 @@ def ask_where(sentence, doc, i):
     temp = ' '.join(word_list)
     if temp[-1] == ' ': temp = temp[:-1]
 
-    return info.replace_pron(temp + '?', doc, i) # + ' ' + answer
+    return temp + '?' # + ' ' + answer
 
-def ask_what(sentence, doc, i):
+def ask_what(sentence):
     word_list = ['What']
 
     tokens = info.get_main_info(sentence)
@@ -170,9 +170,9 @@ def ask_what(sentence, doc, i):
     temp = ' '.join(word_list)
     if temp[-1] == ' ': temp = temp[:-1]
 
-    return info.replace_pron(temp + '?', doc, i)
+    return temp + '?'
 
-def ask_binary(sentence, doc, i):
+def ask_binary(sentence):
     tree = sentence.constituency.children[0].children
 
     if tree[0].label != "NP" or tree[1].label != "VP": return
@@ -192,7 +192,7 @@ def ask_binary(sentence, doc, i):
             elif word.feats != None:
                 ques = binary.binary_question_compound(sentence, word.text)
             break
-    return info.replace_pron(ques, doc, i)                                  
+    return ques                                 
 
 
 
@@ -200,7 +200,7 @@ def ask_binary(sentence, doc, i):
 if __name__ == "__main__":
 
 #    input_file = sys.argv[1]
-    input_file = '11X11-Course-Project-Data/set1/a8.txt'
+    input_file = '../11X11-Course-Project-Data/set1/a8.txt'
     f = open(input_file, "r", encoding="UTF-8")
     article = f.read()
     f.close()
@@ -215,11 +215,11 @@ if __name__ == "__main__":
     doc = nlp(article)
 
     for i, sentence in enumerate(doc.sentences):
-        temp_binary = ask_binary(sentence, doc, i)
-        temp_who = aesthetic.eliminate_space(ask_who(sentence, doc, i))
-        temp_when = aesthetic.eliminate_space(ask_when(sentence, doc, i))
-        temp_where = aesthetic.eliminate_space(ask_where(sentence, doc, i))
-        temp_what = aesthetic.eliminate_space(ask_what(sentence, doc, i))
+        temp_binary = ask_binary(sentence)
+        temp_who = aesthetic.eliminate_space(ask_who(sentence))
+        temp_when = aesthetic.eliminate_space(ask_when(sentence))
+        temp_where = aesthetic.eliminate_space(ask_where(sentence))
+        temp_what = aesthetic.eliminate_space(ask_what(sentence))
         if temp_binary is not None:
             questions_lst.append(temp_binary)
         if temp_who is not None:
@@ -240,4 +240,4 @@ if __name__ == "__main__":
     questions_lst_processed.sort(key=lambda x:x[1])
 
     for i in range(N):
-        print('Q: ' + questions_lst_processed.pop()[0].text)
+        print('Q: ' + info.replace_pron(questions_lst_processed.pop()[0].text, doc, nlp))
