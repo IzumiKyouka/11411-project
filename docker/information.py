@@ -195,3 +195,37 @@ def is_pron(text):
            'it', 'its',
            'they', 'them', 'their', 'theirs']
     return text in lst
+
+def replace_pron(sent, doc, i):
+    nlp = stanza.Pipeline(lang='en', processors='tokenize,mwt,pos,lemma,depparse,constituency,ner')
+    s = nlp(sent)
+    ne = ""
+    while len(ne) == 0:
+        i -= 1
+        ne = find_ne(doc, i)
+    for word in s.words:
+        if word.xpos == "PRP":
+            sent = sent.replace(word.text, ne)
+        if word.xpos == "PRP$":
+            sent = sent.replace(word.text, ne + "'s")
+    return sent
+            
+        
+    
+def find_ne(doc, i):
+    res = ""
+    ne = False
+    while i >= 0:
+        s = doc.sentences[i]
+        for word in s.words:
+            if word.deprel == "nsubj" and "B-" in word.ner:
+                ne = True
+            if ne:
+                res += word.text + " "
+            if "E-" in word.ner:
+                ne = False
+        if len(res) > 0:
+            return res[:-1]
+        i -= 1
+    return ""
+                

@@ -24,7 +24,7 @@ questions_lst = list()
 
 ## Question Generators ##
 
-def ask_when(sentence):
+def ask_when(sentence, doc, i):
     word_list = ['When', 'did']
 
     tokens = info.get_main_info(sentence)
@@ -46,9 +46,9 @@ def ask_when(sentence):
 
     answer = " In %s." % tokens['time']
 
-    return temp + '?' # + answer
+    return info.replace_pron(temp + '?', doc, i) # + answer
 
-def ask_who(sentence):
+def ask_who(sentence, doc, i):
     word_list = ['Who']
 
     tokens = info.get_main_info(sentence)
@@ -82,9 +82,9 @@ def ask_who(sentence):
     temp = ' '.join(word_list)
     if temp[-1] == ' ': temp = temp[:-1]
 
-    return temp + '?' # + ' ' + answer
+    return info.replace_pron(temp + '?', doc, i) # + ' ' + answer
 
-def ask_where(sentence):
+def ask_where(sentence, doc, i):
     word_list = ['Where']
 
     tokens = info.get_main_info(sentence)
@@ -129,9 +129,9 @@ def ask_where(sentence):
     temp = ' '.join(word_list)
     if temp[-1] == ' ': temp = temp[:-1]
 
-    return temp + '?' # + ' ' + answer
+    return info.replace_pron(temp + '?', doc, i) # + ' ' + answer
 
-def ask_what(sentence):
+def ask_what(sentence, doc, i):
     word_list = ['What']
 
     tokens = info.get_main_info(sentence)
@@ -170,9 +170,9 @@ def ask_what(sentence):
     temp = ' '.join(word_list)
     if temp[-1] == ' ': temp = temp[:-1]
 
-    return temp + '?'
+    return info.replace_pron(temp + '?', doc, i)
 
-def ask_binary(sentence):
+def ask_binary(sentence, doc, i):
     tree = sentence.constituency.children[0].children
 
     if tree[0].label != "NP" or tree[1].label != "VP": return
@@ -192,7 +192,7 @@ def ask_binary(sentence):
             elif word.feats != None:
                 ques = binary.binary_question_compound(sentence, word.text)
             break
-    return ques                                  
+    return info.replace_pron(ques, doc, i)                                  
 
 
 
@@ -214,12 +214,12 @@ if __name__ == "__main__":
     
     doc = nlp(article)
 
-    for sentence in doc.sentences:
-        temp_binary = ask_binary(sentence)
-        temp_who = aesthetic.eliminate_space(ask_who(sentence))
-        temp_when = aesthetic.eliminate_space(ask_when(sentence))
-        temp_where = aesthetic.eliminate_space(ask_where(sentence))
-        temp_what = aesthetic.eliminate_space(ask_what(sentence))
+    for i, sentence in enumerate(doc.sentences):
+        temp_binary = ask_binary(sentence, i)
+        temp_who = aesthetic.eliminate_space(ask_who(sentence, doc, i))
+        temp_when = aesthetic.eliminate_space(ask_when(sentence, doc, i))
+        temp_where = aesthetic.eliminate_space(ask_where(sentence, doc, i))
+        temp_what = aesthetic.eliminate_space(ask_what(sentence, doc, i))
         if temp_binary is not None:
             questions_lst.append(temp_binary)
         if temp_who is not None:

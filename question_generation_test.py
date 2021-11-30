@@ -1,11 +1,13 @@
 import stanza
+import information as info
 
 f = open("11X11-Course-Project-Data/set1/a8.txt", "r", encoding="UTF-8")
 article = f.read()
 f.close()
-nlp = stanza.Pipeline(lang='en', processors='tokenize,mwt,pos,ner,constituency,lemma')
+nlp = stanza.Pipeline(lang='en', processors='tokenize,mwt,pos,ner,constituency,lemma, depparse')
 
 doc = nlp(article)
+
 
 def uncap(s):
     if s == "I":
@@ -41,8 +43,7 @@ def binary_question_aux(sentence, w):
     
     res = res[:-3]
     res += "?"
-    print(res)
-    return
+    return res
 
 def dealFeats(features):
     for i in features:
@@ -81,8 +82,7 @@ def binary_question_compound(sentence, w):
     
     res = res[:-3]
     res += "?"
-    print(res)
-    return
+    return res
 
         
 def generate():
@@ -101,9 +101,9 @@ def generate():
             prevTag = sentence.words[i - 1].upos
             if word.text == verb:
                 if word.upos == "AUX" and (prevTag == "PROPN" or prevTag == "PRON" or prevTag == "NOUN"):
-                    binary_question_aux(sentence, word.text)
+                    ques = binary_question_aux(sentence, word.text)
                 elif word.feats != None:
-                    binary_question_compound(sentence, word.text)
+                    ques = binary_question_compound(sentence, word.text)
                 break
                                            
 generate()
