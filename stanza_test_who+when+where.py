@@ -1,6 +1,7 @@
 import stanza
 import aesthetic
 import information as info
+import rankings as rank
 
 
 ## Init Data ##
@@ -27,14 +28,16 @@ def ask_when(sentence):
     if 'main_verb_lemma' not in tokens.keys(): return None
     if 'main_obj' not in tokens.keys(): return None
 
-    if tokens['main_subj'] not in tokens['entities']:
-        tokens['main_subj'] = tokens['main_subj'].lower()
     word_list.append(tokens['main_subj'])
     word_list.append(tokens['main_verb_lemma'])
     try:
         word_list.append(tokens['main_obj_nopp'])
     except:
         pass
+    if 'location' in tokens:
+        word_list.append('in')
+        word_list.append(tokens['location'])
+
 
 
     temp = ' '.join(word_list)
@@ -67,12 +70,10 @@ def ask_who(sentence):
     except:
         pass
 
-    try:
+    if 'time' in tokens:
         happened_time = tokens['time']
         word_list.append('in')
         word_list.append(happened_time)
-    except:
-        pass
 
     temp = ' '.join(word_list)
     if temp[-1] == ' ': temp = temp[:-1]
@@ -105,8 +106,6 @@ def ask_where(sentence):
     answer = tokens['location']
     # second version: with prep (harder)
 
-    if tokens['main_subj'] not in tokens['entities']:
-        tokens['main_subj'] = tokens['main_subj'].lower()
     word_list.append(tokens['main_subj'])
     word_list.append(tokens['main_verb_lemma'])
     try:
@@ -152,11 +151,10 @@ def ask_what(sentence):
         word_list.append(asking_aux)
         word_list.append(tokens['main_subj'])
         word_list.append(tokens['main_verb_lemma'])
-        try:
+        if 'location' in tokens:
             word_list.append('in')
             word_list.append(tokens['location'])
-        except:
-            pass
+
         try:
             word_list.append(tokens['time'])
         except:
@@ -171,21 +169,36 @@ def ask_what(sentence):
 
 ## Main Run ##
 
-g = open("questions.txt", "w")
+# g = open("questions.txt", "w")
 
+questions_lst = []
 for sentence in doc.sentences:
+    sentence = nlp(sentence.text).sentences[0]
     temp_who = aesthetic.eliminate_space(ask_who(sentence))
     temp_when = aesthetic.eliminate_space(ask_when(sentence))
     temp_where = aesthetic.eliminate_space(ask_where(sentence))
     temp_what = aesthetic.eliminate_space(ask_what(sentence))
     if temp_who is not None:
-        g.write(temp_who+'\n')
+        questions_lst.append(temp_who)
     if temp_when is not None:
-        g.write(temp_when+'\n')
+        questions_lst.append(temp_when)
     if temp_where is not None:
-        g.write(temp_where+'\n')
+        questions_lst.append(temp_where)
     if temp_what is not None:
-        g.write(temp_what+'\n')
+        questions_lst.append(temp_what)
 
-g.close()
+questions_lst_processed = []
+for ques in questions_lst:
+    q_doc = nlp(ques)
+    r = rank.rating(q_doc)
+    if r > 0:
+        questions_lst_processed.append((q_doc, r))
+questions_lst_processed.sort(key=lambda x:x[1])
+
+for i in range(20):
+    q = questions_lst_processed.pop()
+    print('Q: ' + info.replace_pron(q[0].text, doc, nlp))
+    print('Score: %d' % q[1])
+
+# g.close()
 

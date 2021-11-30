@@ -32,14 +32,16 @@ def ask_when(sentence):
     if 'main_verb_lemma' not in tokens.keys(): return None
     if 'main_obj' not in tokens.keys(): return None
 
-    if tokens['main_subj'] not in tokens['entities']:
-        tokens['main_subj'] = tokens['main_subj'].lower()
     word_list.append(tokens['main_subj'])
     word_list.append(tokens['main_verb_lemma'])
     try:
         word_list.append(tokens['main_obj_nopp'])
     except:
         pass
+    if 'location' in tokens:
+        word_list.append('in')
+        word_list.append(tokens['location'])
+
 
 
     temp = ' '.join(word_list)
@@ -72,12 +74,10 @@ def ask_who(sentence):
     except:
         pass
 
-    try:
+    if 'time' in tokens:
         happened_time = tokens['time']
         word_list.append('in')
         word_list.append(happened_time)
-    except:
-        pass
 
     temp = ' '.join(word_list)
     if temp[-1] == ' ': temp = temp[:-1]
@@ -110,8 +110,6 @@ def ask_where(sentence):
     answer = tokens['location']
     # second version: with prep (harder)
 
-    if tokens['main_subj'] not in tokens['entities']:
-        tokens['main_subj'] = tokens['main_subj'].lower()
     word_list.append(tokens['main_subj'])
     word_list.append(tokens['main_verb_lemma'])
     try:
@@ -157,11 +155,10 @@ def ask_what(sentence):
         word_list.append(asking_aux)
         word_list.append(tokens['main_subj'])
         word_list.append(tokens['main_verb_lemma'])
-        try:
+        if 'location' in tokens:
             word_list.append('in')
             word_list.append(tokens['location'])
-        except:
-            pass
+
         try:
             word_list.append(tokens['time'])
         except:
@@ -215,6 +212,7 @@ if __name__ == "__main__":
     doc = nlp(article)
 
     for i, sentence in enumerate(doc.sentences):
+        sentence = nlp(sentence.text).sentences[0]
         temp_binary = ask_binary(sentence)
         temp_who = aesthetic.eliminate_space(ask_who(sentence))
         temp_when = aesthetic.eliminate_space(ask_when(sentence))

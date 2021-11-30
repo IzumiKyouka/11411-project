@@ -49,7 +49,7 @@ def get_main_info(sentence):
     
     for child in sentence.constituency.children[0].children:
         # identify agent
-        if child.label == 'NP':
+        if child.label == 'NP' and 'main_subj' not in return_tokens:
             subj_list = []
             add_to_list_all(subj_list, child, entities)
             subject = ' '.join(subj_list)
@@ -66,17 +66,20 @@ def get_main_info(sentence):
                     if 'main_verb' not in return_tokens:
                         return_tokens['main_verb'] = verb
                 elif g_child.label == 'NP':
-                    add_to_list_all(obj_list, g_child, entities)
-                    add_to_list_without_pp(obj_list_nopp, g_child, entities)
-                    object = ' '.join(obj_list)
-                    object_nopp = ' '.join(obj_list_nopp)
-                    return_tokens['main_obj'] = object
-                    return_tokens['main_obj_nopp'] = object_nopp
+                    if 'main_obj' not in return_tokens:
+                        add_to_list_all(obj_list, g_child, entities)
+                        object = ' '.join(obj_list)
+                        return_tokens['main_obj'] = object
+                    if 'main_obj_nopp' not in return_tokens:
+                        add_to_list_without_pp(obj_list_nopp, g_child, entities)
+                        object_nopp = ' '.join(obj_list_nopp)
+                        return_tokens['main_obj_nopp'] = object_nopp
                 elif g_child.label in ['ADJP', 'ADVP']:
-                    add_to_list_all(descriptive_list, g_child, entities)
-                    descriptive = ' '.join(descriptive_list)
-                    return_tokens['descript'] = descriptive
-                elif g_child.label == 'PP' and 'time' not in return_tokens and 'location' not in return_tokens:
+                    if 'descript' not in return_tokens:
+                        add_to_list_all(descriptive_list, g_child, entities)
+                        descriptive = ' '.join(descriptive_list)
+                        return_tokens['descript'] = descriptive
+                elif g_child.label == 'PP' and 'time' not in return_tokens and 'location' not in return_tokens and 'method' not in return_tokens:
                     add_to_list_all(method_list, g_child, entities)
                     methods = ' '.join(method_list)
                     return_tokens['method'] = methods
@@ -210,5 +213,3 @@ def replace_pron(sent, doc, nlp):
             break
     
     return sent
-            
-        

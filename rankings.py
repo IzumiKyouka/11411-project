@@ -7,7 +7,7 @@ def rating(question):
     elif not q_type:
         return 5
     else:
-        tree = question.constituency
+        tree = question.sentences[0].constituency
         dic = dict()
         # find subject, verb, object
         search_component(tree, dic)
@@ -16,21 +16,21 @@ def rating(question):
 
         # find location
         place = []
-        for i in range(len(sentence.words)):
-            word = sentence.words[i]
-            tok = sentence.tokens[i]
+        for i in range(len(sentence.sentences[0].words)):
+            word = sentence.sentences[0].words[i]
+            tok = sentence.sentences[0].tokens[i]
             if ('ORG' in tok.ner) or ('GPE' in tok.ner) or ('LOC' in tok.ner):
-                if word.deprel == 'obl' and info.is_main_verb(sentence.words[word.head - 1]):
+                if word.deprel == 'obl' and info.is_main_verb(sentence.sentences[0].words[word.head - 1]):
                     place.append(word.text)
-                elif word.deprel == 'compound' and sentence.words[word.head - 1].deprel == 'obl':
+                elif word.deprel == 'compound' and sentence.sentences[0].words[word.head - 1].deprel == 'obl':
                     place.append(word.text)
-                elif word.deprel == 'flat' and sentence.words[word.head - 1].deprel == 'obl':
+                elif word.deprel == 'flat' and sentence.sentences[0].words[word.head - 1].deprel == 'obl':
                     place.append(word.text)
         if len(place):
             dic['space'] = ' '.join(place)
 
         # find time
-        for ent in sentence.ents:
+        for ent in sentence.sentences[0].ents:
             if ent.type == 'DATE':
                 for i in range(len(ent.text) - 3):
                     if ent.text[i:i + 4].isdigit():
@@ -44,21 +44,23 @@ def rating(question):
         if 'object' in dic.keys(): count += 1
         if 'space' in dic.keys(): count += 1
         if 'time' in dic.keys(): count += 1
-        return count
+        if 'descript' in dic.keys(): count += 1
+        if 'method' in dic.keys(): count += 1
+        return count % 5
 
 
 def identify(question):
-    tree = question.constituency
+    tree = question.sentences[0].constituency
 
     if tree.children[0].label == 'SQ':
-        init_word = question.words[0]
+        init_word = question.sentences[0].words[0]
         if init_word.upos == 'AUX':
             # binary question, not-yet-to-be-rated
             return False
         else:
             return None
     elif tree.children[0].label == 'SBARQ':
-        init_word = question.words[0]
+        init_word = question.sentences[0].words[0]
         if init_word.text.lower() in ['when', 'who', 'whom', 'where', 'which', 'what', 'how']:
             # wh-question, need to rate
             return True
