@@ -36,6 +36,7 @@ def binary_question_aux(sentence, w):
     return res
 
 def dealFeats(features):
+    res = 1
     for i in features:
         if "Tense" in i:
             if i == "Tense=Past":

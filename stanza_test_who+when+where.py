@@ -1,18 +1,20 @@
 import stanza
 import aesthetic
+import binary
 import information as info
 import rankings as rank
 
 
 ## Init Data ##
 
-f = open("11X11-Course-Project-Data/set1/a8.txt", "r", encoding="UTF-8")
+f = open("11X11-Course-Project-Data/set3/a1.txt", "r", encoding="UTF-8")
 article = f.read()
 f.close()
 
-article = article[:3000]
+article = article[:10000]
 
-nlp = stanza.Pipeline(lang='en', processors='tokenize,mwt,pos,lemma,depparse,constituency,ner')
+nlp = stanza.Pipeline(lang='en', processors='tokenize,mwt,pos,lemma,depparse,ner')
+nlp_plus = stanza.Pipeline(lang='en', processors='tokenize,mwt,pos,lemma,depparse,constituency,ner')
 
 doc = nlp(article)
 
@@ -113,12 +115,11 @@ def ask_where(sentence):
     except:
         pass
 
-    try:
+    if 'time' in tokens:
         happened_time = tokens['time']
         word_list.append('in')
         word_list.append(happened_time)
-    except:
-        pass
+
 
     temp = ' '.join(word_list)
     if temp[-1] == ' ': temp = temp[:-1]
@@ -155,16 +156,39 @@ def ask_what(sentence):
             word_list.append('in')
             word_list.append(tokens['location'])
 
-        try:
-            word_list.append(tokens['time'])
-        except:
-            pass
+        if 'time' in tokens:
+            happened_time = tokens['time']
+            if 'in ' not in happened_time:
+                word_list.append('in')
+            word_list.append(happened_time)
     
     temp = ' '.join(word_list)
     if temp[-1] == ' ': temp = temp[:-1]
 
     return temp + '?'
 
+
+def ask_binary(sentence):
+    tree = sentence.constituency.children[0].children
+
+    if tree[0].label != "NP" or tree[1].label != "VP": return
+
+    verb = tree[1].children[0].children[0]
+    verb = str(verb)
+    if len(sentence.words) > 15: return
+
+    ques = None
+    for i, word in enumerate(sentence.words):
+        if i == 0:
+            continue
+        prevTag = sentence.words[i - 1].upos
+        if word.text == verb:
+            if word.upos == "AUX" and (prevTag == "PROPN" or prevTag == "PRON" or prevTag == "NOUN"):
+                ques = binary.binary_question_aux(sentence, word.text)
+            elif word.feats != None:
+                ques = binary.binary_question_compound(sentence, word.text)
+            break
+    return ques   
 
 
 ## Main Run ##
@@ -173,11 +197,14 @@ def ask_what(sentence):
 
 questions_lst = []
 for sentence in doc.sentences:
-    sentence = nlp(sentence.text).sentences[0]
+    sentence = nlp_plus(sentence.text).sentences[0]
+    temp_binary = ask_binary(sentence)
     temp_who = aesthetic.eliminate_space(ask_who(sentence))
     temp_when = aesthetic.eliminate_space(ask_when(sentence))
     temp_where = aesthetic.eliminate_space(ask_where(sentence))
     temp_what = aesthetic.eliminate_space(ask_what(sentence))
+    if temp_binary is not None:
+        questions_lst.append(temp_binary)
     if temp_who is not None:
         questions_lst.append(temp_who)
     if temp_when is not None:
@@ -196,9 +223,12 @@ for ques in questions_lst:
 questions_lst_processed.sort(key=lambda x:x[1])
 
 for i in range(20):
-    q = questions_lst_processed.pop()
-    print('Q: ' + info.replace_pron(q[0].text, doc, nlp))
-    print('Score: %d' % q[1])
+    try:
+        q = questions_lst_processed.pop()
+        print('Q: ' + info.replace_pron(q[0].text, doc, nlp))
+        print('Score: %d' % q[1])
+    except:
+        break
 
 # g.close()
 

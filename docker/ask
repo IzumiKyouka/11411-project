@@ -117,12 +117,11 @@ def ask_where(sentence):
     except:
         pass
 
-    try:
+    if 'time' in tokens:
         happened_time = tokens['time']
         word_list.append('in')
         word_list.append(happened_time)
-    except:
-        pass
+
 
     temp = ' '.join(word_list)
     if temp[-1] == ' ': temp = temp[:-1]
@@ -159,10 +158,11 @@ def ask_what(sentence):
             word_list.append('in')
             word_list.append(tokens['location'])
 
-        try:
-            word_list.append(tokens['time'])
-        except:
-            pass
+        if 'time' in tokens:
+            happened_time = tokens['time']
+            if 'in ' not in happened_time:
+                word_list.append('in')
+            word_list.append(happened_time)
     
     temp = ' '.join(word_list)
     if temp[-1] == ' ': temp = temp[:-1]
@@ -238,4 +238,9 @@ if __name__ == "__main__":
     questions_lst_processed.sort(key=lambda x:x[1])
 
     for i in range(N):
-        print('Q: ' + info.replace_pron(questions_lst_processed.pop()[0].text, doc, nlp))
+        try:
+            q = questions_lst_processed.pop()
+            print('Q: ' + info.replace_pron(q[0].text, doc, nlp))
+            # print('Score: %d' % q[1])
+        except:
+            continue

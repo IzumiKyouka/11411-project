@@ -5,7 +5,11 @@ def rating(question):
     if q_type is None:
         return 0
     elif not q_type:
-        return 5
+        length = len(question.sentences[0].words)
+        if length >= 12: return 4
+        elif length >= 9: return 3
+        elif length >= 6: return 2
+        else: return 1
     else:
         tree = question.sentences[0].constituency
         dic = dict()
