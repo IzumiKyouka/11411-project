@@ -12,8 +12,12 @@ RUN apt-get -y update && \
 
 # Install spaCy
 RUN pip3 install --upgrade pip
-RUN pip3 install stanza
+RUN pip3 install --pre stanza
 RUN pip3 install sklearn
+RUN pip3 install numpy
+RUN pip3 install scipy
+RUN pip3 install sent2vec
+RUN pip3 install nltk
 
 #RUN python3 -m stanza.download('en')
 
@@ -22,6 +26,12 @@ RUN mkdir /QA
 ADD ask /QA
 ADD answer /QA
 ADD setup.py /QA
+ADD aesthetic.py /QA
+ADD bert_sim.py /QA
+ADD binary.py /QA
+ADD information.py /QA
+ADD locate_answer_sentence.py /QA
+ADD rankings.py /QA
 
 RUN python3 QA/setup.py
 

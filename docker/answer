@@ -8,7 +8,6 @@ import aesthetic
 import information as info
 import locate_answer_sentence as locate
 
-nlp = stanza.Pipeline(lang='en', processors='tokenize,mwt,pos,lemma,depparse,constituency,ner')
 
 
 ## Asking Questions ##
@@ -118,6 +117,8 @@ def classify(ques):
 
 
 if __name__ == "__main__":
+    nlp = stanza.Pipeline(lang='en', processors='tokenize,mwt,pos,lemma,depparse,constituency,ner')
+
     input_file = sys.argv[1]
     question_file = sys.argv[2]
 #    input_file = '11X11-Course-Project-Data/set1/a1.txt'
