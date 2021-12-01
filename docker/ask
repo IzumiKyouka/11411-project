@@ -1,7 +1,6 @@
 #!/usr/bin/python3 -W ignore::DeprecationWarning
 # -*- coding:utf8 -*-
 
-import random
 import sys
 import stanza
 import aesthetic
@@ -9,7 +8,6 @@ import binary
 import information as info
 import rankings as rank
 
-#stanza.download('en')
 questions_lst = list()
 
 
@@ -196,16 +194,14 @@ def ask_binary(sentence):
 
 if __name__ == "__main__":
 
-#    input_file = sys.argv[1]
-    input_file = '../11X11-Course-Project-Data/set1/a8.txt'
+    input_file = sys.argv[1]
     f = open(input_file, "r", encoding="UTF-8")
     article = f.read()
     f.close()
 
     article = article[:20000]
 
-#    N = int(sys.argv[2])
-    N = 20
+    N = int(sys.argv[2])
 
     nlp = stanza.Pipeline(lang='en', processors='tokenize,mwt,pos,lemma,depparse,constituency,ner')
     
@@ -241,6 +237,5 @@ if __name__ == "__main__":
         try:
             q = questions_lst_processed.pop()
             print('Q: ' + info.replace_pron(q[0].text, doc, nlp))
-            # print('Score: %d' % q[1])
         except:
             continue

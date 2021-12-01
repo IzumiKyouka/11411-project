@@ -118,10 +118,10 @@ def classify(ques):
 
 
 if __name__ == "__main__":
-#    input_file = sys.argv[1]
-#    question_file = sys.argv[2]
-    input_file = '11X11-Course-Project-Data/set1/a1.txt'
-    question_file = 'test_questions.txt'
+    input_file = sys.argv[1]
+    question_file = sys.argv[2]
+#    input_file = '11X11-Course-Project-Data/set1/a1.txt'
+#    question_file = 'test_questions.txt'
 
     fa = open(input_file, "r", encoding="UTF-8")
     article = fa.read()

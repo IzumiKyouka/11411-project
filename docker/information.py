@@ -7,7 +7,6 @@ import locate_answer_sentence as locate
 
 ## Information Seeker ##
 
-# nltk.download('wordnet')
 
 
 def get_main_info(sentence):

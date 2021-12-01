@@ -1,5 +1,4 @@
 import numpy as np
-import stanza
 from scipy import spatial
 from sent2vec.vectorizer import Vectorizer
 
