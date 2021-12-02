@@ -3,20 +3,31 @@ import aesthetic
 import binary
 import information as info
 import rankings as rank
+import os
+import sys
+import logging
+
+
 
 
 ## Init Data ##
 
-f = open("11X11-Course-Project-Data/set3/a1.txt", "r", encoding="UTF-8")
+
+f = open("11X11-Course-Project-Data/set1/a8.txt", "r", encoding="UTF-8")
 article = f.read()
 f.close()
 
-article = article[:10000]
+article = article[:3000]
 
-nlp = stanza.Pipeline(lang='en', processors='tokenize,mwt,pos,lemma,depparse,ner')
-nlp_plus = stanza.Pipeline(lang='en', processors='tokenize,mwt,pos,lemma,depparse,constituency,ner')
+
+
+logger = logging.getLogger('stanza')
+logger.disabled = True
+nlp = stanza.Pipeline(lang='en', processors='tokenize,mwt,pos,lemma,depparse,constituency,ner')
+logger.disabled = False
 
 doc = nlp(article)
+
 
 
 
@@ -197,7 +208,7 @@ def ask_binary(sentence):
 
 questions_lst = []
 for sentence in doc.sentences:
-    sentence = nlp_plus(sentence.text).sentences[0]
+    sentence = nlp(sentence.text).sentences[0]
     temp_binary = ask_binary(sentence)
     temp_who = aesthetic.eliminate_space(ask_who(sentence))
     temp_when = aesthetic.eliminate_space(ask_when(sentence))
@@ -222,7 +233,7 @@ for ques in questions_lst:
         questions_lst_processed.append((q_doc, r))
 questions_lst_processed.sort(key=lambda x:x[1])
 
-for i in range(20):
+for i in range(3):
     try:
         q = questions_lst_processed.pop()
         print('Q: ' + info.replace_pron(q[0].text, doc, nlp))

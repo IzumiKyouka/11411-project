@@ -4,6 +4,7 @@ import stanza
 from sklearn.feature_extraction.text import TfidfVectorizer
 import numpy as np
 import sys
+import logging
 import aesthetic
 import information as info
 import locate_answer_sentence as locate
@@ -117,8 +118,6 @@ def classify(ques):
 
 
 if __name__ == "__main__":
-    nlp = stanza.Pipeline(lang='en', processors='tokenize,mwt,pos,lemma,depparse,constituency,ner')
-
     input_file = sys.argv[1]
     question_file = sys.argv[2]
 #    input_file = '11X11-Course-Project-Data/set1/a1.txt'
@@ -127,6 +126,11 @@ if __name__ == "__main__":
     fa = open(input_file, "r", encoding="UTF-8")
     article = fa.read()
     fa.close()
+
+    logger = logging.getLogger('stanza')
+    logger.disabled = True
+    nlp = stanza.Pipeline(lang='en', processors='tokenize,mwt,pos,lemma,depparse,constituency,ner')
+    logger.disabled = False
 
     doc = nlp(article)
     article_list = []

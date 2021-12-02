@@ -2,6 +2,7 @@
 # -*- coding:utf8 -*-
 
 import sys
+import logging
 import stanza
 import aesthetic
 import binary
@@ -203,7 +204,10 @@ if __name__ == "__main__":
 
     N = int(sys.argv[2])
 
+    logger = logging.getLogger('stanza')
+    logger.disabled = True
     nlp = stanza.Pipeline(lang='en', processors='tokenize,mwt,pos,lemma,depparse,constituency,ner')
+    logger.disabled = False
     
     doc = nlp(article)
 
